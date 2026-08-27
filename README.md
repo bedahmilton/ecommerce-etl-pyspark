@@ -16,10 +16,10 @@ This dataset contains online retail transactions and is used as the input for th
 
 ## Project Structure
 
-- `src/1_ingest.py` — loads the raw CSV file into a Spark DataFrame.
-- `src/2_clean.py` — cleans invalid, duplicate, and inconsistent records.
-- `src/3_transform.py` — creates derived fields and prepares the data for analysis.
-- `src/4_load.py` — writes the transformed output to the target storage layer.
+- `src/ingest.py` — loads the raw CSV file into a Spark DataFrame.
+- `src/clean.py` — casts fields, trims text, checks nulls, and removes rows with required null values.
+- `src/transform.py` — creates derived fields and prepares the data for analysis.
+- `src/load.py` — writes the transformed output to the target storage layer.
 - `main.py` — entry point for orchestrating the pipeline.
 - `data/raw/online_retail.csv` — source dataset used by the pipeline.
 - `logs/` — runtime logs generated during execution.
@@ -32,25 +32,46 @@ This dataset contains online retail transactions and is used as the input for th
 
 ## Setup
 
-1. Clone the repository.
+Run the commands below from the repository root.
+
+1. Clone the repository and change into it:
+
+   ```bash
+   git clone <repository-url>
+   cd ecommerce-etl-pyspark
+   ```
+
 2. Create and activate a virtual environment:
 
    ```bash
-   python -m venv venv
+   python3 -m venv venv
    source venv/bin/activate
    ```
 
 3. Install dependencies:
 
    ```bash
-   pip install -r requirements.txt
+   python3 -m pip install -r requirements.txt
    ```
 
-4. Run the ingestion step:
+## Running the Pipeline
 
-   ```bash
-   python src/1_ingest.py
-   ```
+Run individual ETL stages as Python modules:
+
+```bash
+python3 -m src.ingest
+python3 -m src.clean
+python3 -m src.transform
+python3 -m src.load
+```
+
+The cleaning stage reads `data/raw/online_retail.csv`, writes its file output to `logs/clean.log`, and uses its own logger without propagating records to the ingestion logger.
+
+To run the orchestrated pipeline:
+
+```bash
+python3 main.py
+```
 
 ## Pipeline Flow
 
@@ -61,8 +82,8 @@ This dataset contains online retail transactions and is used as the input for th
 
 ## Notes
 
-- Raw data files under `data/raw/` are excluded from version control.
-- Log files generated in `logs/` are also excluded from Git.
+- The raw input file under `data/raw/` is required for local execution and is ignored by default to avoid committing datasets accidentally. To intentionally commit the bundled CSV, run `git add -f data/raw/online_retail.csv`.
+- Log files generated in `logs/` are runtime artifacts and should generally remain uncommitted.
 - The project structure is intentionally modular to make each ETL stage easier to debug and expand.
 
 ## License
