@@ -128,6 +128,12 @@ def clean_data (df, logger):
 
     return df
 
+output_path = 'data/processed/cleaned_data.parquet'
+def save_cleaned_data(df, logger, output_path):
+    logger.info(f'Writing cleaned data to {output_path} ... ')
+    df.coalesce(1).write.mode('overwrite').parquet(output_path)
+    logger.info(f'Cleaned data saved successfully.')
+
 
 if __name__ == "__main__":
     spark = get_spark_session()
@@ -139,7 +145,9 @@ if __name__ == "__main__":
         final_count = df.count()
         rows_kept_percentage = (final_count / original_count) * 100
         logger.info(f'Cleaning complete: {final_count}/{original_count} rows retained ({rows_kept_percentage:.2f}%)')
-       
+
+        #save data
+        save_cleaned_data(df, logger, output_path)
 
 
     except (FileNotFoundError, RuntimeError) as err:

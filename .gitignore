@@ -10,6 +10,7 @@ __pycache__/
 # Data Directories (Ignore local datasets)
 # ==========================================
 data/raw/*.csv
+data/processed/*.parquet
 
 
 # ==========================================
