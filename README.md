@@ -13,6 +13,7 @@ The source data is the Online Retail dataset from Kaggle:
 - https://www.kaggle.com/datasets/vijayuv/onlineretail
 
 This dataset contains online retail transactions and is used as the input for the ingestion and ETL process in this project.
+To be used on the raw input file under `data/raw/`
 
 ## Project Structure
 
