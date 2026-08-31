@@ -75,14 +75,38 @@ python3 main.py
 
 ## Pipeline Flow
 
-1. Ingest raw CSV data into Spark.
-2. Clean missing or malformed values.
-3. Transform the dataset into analysis-friendly columns and metrics.
-4. Load the output to a destination for reporting or downstream processing.
+1. **Ingest** — load raw CSV data into a Spark DataFrame.
+2. **Clean** — validate and correct field types, remove invalid or incomplete records.
+3. **Transform** — derive analysis-ready columns and metrics. *(in progress)*
+4. **Load** — write the final output to a destination for reporting or downstream processing. *(pending)*
+
+## Data Cleaning Summary
+
+Cleaning steps applied in `src/clean.py`, in order:
+
+- Cast `InvoiceDate` string → timestamp
+- Trim whitespace in `Description` and `Country`
+- Drop rows with null `CustomerID` or `Description`
+- Filter out `Quantity <= 0`
+- Filter out `UnitPrice <= 0`
+- Remove duplicate rows
+
+**Results:**
+
+| Metric | Value |
+|---|---|
+| Starting rows | 541,909 |
+| Removed — null `CustomerID`/`Description` | 135,080 |
+| Removed — invalid `Quantity` | 8,905 |
+| Removed — invalid `UnitPrice` | 40 |
+| Removed — duplicates | 5,192 |
+| Final rows | 392,692 |
+| Rows kept | 72.46% |
+
+
 
 ## Notes
 
-- The raw input file under `data/raw/` is required for local execution and is ignored by default to avoid committing datasets accidentally. To intentionally commit the bundled CSV, run `git add -f data/raw/online_retail.csv`.
 - Log files generated in `logs/` are runtime artifacts and should generally remain uncommitted.
 - The project structure is intentionally modular to make each ETL stage easier to debug and expand.
 
