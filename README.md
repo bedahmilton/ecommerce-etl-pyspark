@@ -18,11 +18,12 @@ To be used on the raw input file under `data/raw/`
 ## Project Structure
 
 - `src/ingest.py` — loads the raw CSV file into a Spark DataFrame.
-- `src/clean.py` — casts fields, trims text, checks nulls, and removes rows with required null values.
-- `src/transform.py` — creates derived fields and prepares the data for analysis.
-- `src/load.py` — writes the transformed output to the target storage layer.
+- `src/clean.py` — casts fields, trims text, checks nulls, removes invalid/duplicate rows, and saves cleaned output as Parquet (`data/processed/cleaned_data.parquet`).
+- `src/transform.py` — reads cleaned Parquet, derives analytical columns, computes revenue aggregations, and saves each result as Parquet.
+- `src/load.py` — writes the final transformed output to its destination. *(pending)*
 - `main.py` — entry point for orchestrating the pipeline.
 - `data/raw/online_retail.csv` — source dataset used by the pipeline.
+- `data/processed/` — intermediate Parquet outputs from cleaning and transformation stages (not committed to git).
 - `logs/` — runtime logs generated during execution.
 
 ## Prerequisites
@@ -77,9 +78,11 @@ python3 main.py
 ## Pipeline Flow
 
 1. **Ingest** — load raw CSV data into a Spark DataFrame.
-2. **Clean** — validate and correct field types, remove invalid or incomplete records.
-3. **Transform** — derive analysis-ready columns and metrics. *(in progress)*
+2. **Clean** — validate and correct field types, remove invalid or incomplete records. Saves cleaned output to `data/processed/cleaned_data.parquet`.
+3. **Transform** — derive analysis-ready columns and metrics, then compute aggregations. Reads from the cleaned Parquet file; saves each result to `data/processed/`.
 4. **Load** — write the final output to a destination for reporting or downstream processing. *(pending)*
+
+Each stage is decoupled: rather than importing functions from the previous stage, every stage reads the previous stage's saved Parquet output. This keeps stages independently testable and mirrors how real pipelines hand off data through storage.
 
 ## Data Cleaning Summary
 
@@ -104,10 +107,29 @@ Cleaning steps applied in `src/clean.py`, in order:
 | Final rows | 392,692 |
 | Rows kept | 72.46% |
 
+## Data Transformation Summary
 
+Transformation steps applied in `src/transform.py`, reading from `data/processed/cleaned_data.parquet`:
+
+- `TotalPrice` — derived column: `Quantity * UnitPrice`
+- `Year`, `Month`, `YearMonth` — extracted from `InvoiceDate`
+- **Revenue by country** — total `TotalPrice` grouped by `Country`, sorted highest first
+- **Revenue by month** — total `TotalPrice` grouped by `YearMonth`
+- **Top products by revenue** — total `TotalPrice` grouped by `Description`, sorted highest first
+
+Each result is saved individually as Parquet:
+
+| Output | File |
+|---|---|
+| Transaction-level data (with `TotalPrice`, `Year`, `Month`) | `data/processed/transactions.parquet` |
+| Revenue by country | `data/processed/country_revenue.parquet` |
+| Revenue by month | `data/processed/monthly_revenue.parquet` |
+| Top products by revenue | `data/processed/product_revenue.parquet` |
 
 ## Notes
 
+- The raw input file under `data/raw/` is required for local execution.
+- `data/processed/` is excluded from version control (see `.gitignore`) — these are generated intermediate outputs from `clean.py` and `transform.py`. Running the pipeline stages locally will recreate them.
 - Log files generated in `logs/` are runtime artifacts and should generally remain uncommitted.
 - The project structure is intentionally modular to make each ETL stage easier to debug and expand.
 

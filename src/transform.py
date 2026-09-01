@@ -120,12 +120,22 @@ def transform_data(df, logger):
         'product_revenue': product_revenue
     }
 
+def save_transformed_data(results, logger):
+    output_dir = "data/processed"
+    
+    for name, df in results.items():
+        output_path = f'{output_dir}/{name}.parquet'
+        logger.info(f"Saving '{name}' to {output_path} ...")
+        df.write.mode("overwrite").parquet(output_path)
+        logger.info(f"Saved '{name}' successfully.")
+
 if __name__ == "__main__":
     spark = get_spark_session()
     try:
         # Read the cleaned data from Parquet
         df = spark.read.parquet(clean_data_path)
         results = transform_data(df, logger)
+        save_transformed_data (results, logger)
         logger.info(f'Transformation pipeline executed successfully, Keys available: {list(results.keys())}')
 
     except (FileNotFoundError, RuntimeError) as err:
