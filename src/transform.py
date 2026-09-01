@@ -1,4 +1,4 @@
-from src.ingest import get_spark_session, read_csv, data_path
+from src.ingest import get_spark_session
 from pyspark.sql.functions import *
 import logging, sys, os
 
@@ -120,6 +120,7 @@ def transform_data(df, logger):
         'product_revenue': product_revenue
     }
 
+# Saving
 def save_transformed_data(results, logger):
     output_dir = "data/processed"
     
@@ -128,6 +129,7 @@ def save_transformed_data(results, logger):
         logger.info(f"Saving '{name}' to {output_path} ...")
         df.write.mode("overwrite").parquet(output_path)
         logger.info(f"Saved '{name}' successfully.")
+
 
 if __name__ == "__main__":
     spark = get_spark_session()

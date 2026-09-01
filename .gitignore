@@ -11,7 +11,7 @@ __pycache__/
 # ==========================================
 data/raw/*.csv
 data/processed/*.parquet
-
+data/output/*
 
 # ==========================================
 # Project Logs & Pipeline Metadata
